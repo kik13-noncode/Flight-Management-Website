@@ -1,0 +1,45 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+
+{% if current_user.is_authenticated %}
+  <div class="row align-items-center my-4">
+      <div class="col-md-2 text-center">
+        {% if current_user.avatar %}
+          <img src="{{ current_user.avatar }}" class="img-fluid rounded-circle shadow-sm" style="max-width: 120px;" alt="Avatar" />
+        {% else %}
+          <img src="https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg" class="img-fluid rounded-circle shadow-sm" style="max-width: 120px;" alt="Default Avatar" />
+        {% endif %}
+      </div>
+      <div class="col-md-10">
+        <h3 class="font-weight-bold">Chào mừng <span class="text-primary">{{ current_user.name or current_user.username }}</span> đến với trang quản trị Chuyến bay!</h3>
+        <p class="text-muted mb-0">Chức vụ: <strong>{{ current_user.user_role.value if current_user.user_role else 'ADMIN' }}</strong></p>
+      </div>
+  </div>
+  <hr>
+{% else %}
+  <div class="row justify-content-center my-5">
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white text-center">
+          <h4 class="mb-0">ĐĂNG NHẬP HỆ THỐNG QUẢN TRỊ</h4>
+        </div>
+        <div class="card-body">
+          <form method="post" action="/login">
+            <div class="form-group mb-3">
+              <label for="username" class="font-weight-bold">Tên đăng nhập:</label>
+              <input type="text" class="form-control" placeholder="Nhập tên đăng nhập" id="username" name="username" required />
+            </div>
+            <div class="form-group mb-4">
+              <label for="pwd" class="font-weight-bold">Mật khẩu:</label>
+              <input type="password" class="form-control" placeholder="Nhập mật khẩu" id="pwd" name="password" required />
+            </div>
+            <button type="submit" class="btn btn-primary btn-block w-100">Đăng nhập</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+{% endblock %}

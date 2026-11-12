@@ -1,0 +1,95 @@
+{% extends 'layout/base.html' %}
+
+{% block nav %}
+
+<div class="container-fluid mt-4">
+    <form method="GET" action="/">
+
+        <div class="row align-items-end g-3">
+
+            <!-- Điểm đi -->
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Từ</label>
+
+                <select class="form-select form-select-lg"
+                        name="from_city" required>
+
+                    <option value="" selected disabled>Chọn điểm đi</option>
+                    <option value="SG">Sài Gòn (SG)</option>
+                    <option value="HN">Hà Nội (HN)</option>
+                    <option value="DN">Đà Nẵng (DN)</option>
+
+                </select>
+            </div>
+
+            <!-- Điểm đến -->
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Đến</label>
+
+                <select class="form-select form-select-lg"
+                        name="to_city" required>
+
+                    <option value="" selected disabled>Chọn điểm đến</option>
+                    <option value="SG">Sài Gòn (SG)</option>
+                    <option value="HN">Hà Nội (HN)</option>
+                    <option value="DN">Đà Nẵng (DN)</option>
+
+                </select>
+            </div>
+
+            <!-- Ngày đi -->
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Ngày khởi hành</label>
+
+                <input type="date"
+                       class="form-control form-control-lg"
+                       name="departure_date"
+                       required>
+            </div>
+
+            <!-- Ngày về -->
+            <div class="col-md-3">
+
+                <div class="form-check mb-2">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           id="ngayve"
+                           onchange="toggleReturnDate()">
+
+                    <label class="form-check-label fw-bold"
+                           for="ngayve">Ngày về</label>
+                </div>
+
+                <input type="date"
+                       class="form-control form-control-lg"
+                       name="return_date"
+                       id="return_date"
+                       disabled>
+
+            </div>
+
+            <!-- Tìm kiếm -->
+            <div class="col-12 text-end">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    🔍
+                </button>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+<script>
+    function toggleReturnDate() {
+        let checkbox = document.getElementById("ngayve");
+        let returnDate = document.getElementById("return_date");
+
+        returnDate.disabled = !checkbox.checked;
+
+        if (!checkbox.checked) {
+            returnDate.value = "";
+        }
+    }
+</script>
+
+{% endblock %}

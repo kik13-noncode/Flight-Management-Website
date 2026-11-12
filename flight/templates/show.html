@@ -1,10 +1,147 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends 'layout/base.html' %}
+{% block nav %}
+
+<div class="container-fluid mt-4">
+
+    <h4 class="mb-4">Kết quả tìm kiếm chuyến bay</h4>
+
+    <div class="row">
+
+        {% for t in Ticket %}
+        <div class="col-12 mb-3">
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+
+                    <div class="row align-items-center text-center">
+
+                        <!-- Hãng bay -->
+                        <div class="col-md-2">
+                            <img src="{{ t.image }}" width="50" height="40" alt="{{ t.name }}">
+                            <h6 class="mt-2">{{ t.name }}</h6>
+                        </div>
+
+                        <!-- Giờ đi & Điểm đi -->
+                        <div class="col-md-2">
+                            <h3>{{ t.departure.strftime('%H:%M') if t.departure else '' }}</h3>
+                            <span class="text-secondary">{{ t.from_city }}</span>
+                        </div>
+
+                        <!-- Thời gian bay -->
+                        <div class="col-md-2">
+                            <span class="text-secondary">Bay thẳng</span>
+                            <hr class="my-2">
+                        </div>
+
+                        <!-- Giờ đến & Điểm đến -->
+                        <div class="col-md-2">
+                            <h3>{{ t.arrival.strftime('%H:%M') if t.arrival else '' }}</h3>
+                            <span class="text-secondary">{{ t.to_city }}</span>
+                        </div>
+
+                        <!-- Giá vé -->
+                        <div class="col-md-2">
+                            <h4 class="text-danger mb-0">
+                                {{ "{:,.0f}".format(t.price|float) }} VNĐ
+                            </h4>
+                        </div>
+
+                        <!-- Nút kích hoạt Modal -->
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-primary text-nowrap" data-bs-toggle="modal"
+                                    data-bs-target="#modal{{ t.id }}">
+                                Chọn chuyến bay
+                            </button>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- MODAL CHỌN 1 TRONG 3 HẠNG VÉ -->
+        <div class="modal fade" id="modal{{ t.id }}" tabindex="-1" aria-labelledby="modalLabel{{ t.id }}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content text-start">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalLabel{{ t.id }}">Chọn hạng vé - {{ t.name }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <p class="text-muted mb-3">Vui lòng chọn hạng ghế bạn mong muốn:</p>
+
+                        <div class="list-group">
+                            <!-- Hạng 1: Thương gia (+10% giá vé) -->
+                            <form action="{{ url_for('chon_hang_ve') }}" method="POST" class="mb-2">
+                                <input type="hidden" name="flight_id" value="{{ t.id }}">
+                                <input type="hidden" name="ticket_class_id" value="1">
+                                <button type="submit" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3">
+                                    <div>
+                                        <strong class="d-block text-primary">Thương gia</strong>
+                                        <small class="text-muted">Ưu tiên làm thủ tục, ghế rộng rãi</small>
+                                    </div>
+                                    <span class="badge bg-danger rounded-pill fs-6">
+                                        {{ "{:,.0f}".format(t.price|float * 1.10) }} VNĐ
+                                    </span>
+                                </button>
+                            </form>
+
+                            <!-- Hạng 2: Phổ thông đặc biệt (+5% giá vé) -->
+                            <form action="{{ url_for('chon_hang_ve') }}" method="POST" class="mb-2">
+                                <input type="hidden" name="flight_id" value="{{ t.id }}">
+                                <input type="hidden" name="ticket_class_id" value="2">
+                                <button type="submit" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3">
+                                    <div>
+                                        <strong class="d-block text-primary">Phổ thông đặc biệt</strong>
+                                        <small class="text-muted">Bao gồm hành lý ký gửi</small>
+                                    </div>
+                                    <span class="badge bg-danger rounded-pill fs-6">
+                                        {{ "{:,.0f}".format(t.price|float * 1.05) }} VNĐ
+                                    </span>
+                                </button>
+                            </form>
+
+                            <!-- Hạng 3: Phổ thông (Giá gốc) -->
+                            <form action="{{ url_for('chon_hang_ve') }}" method="POST">
+                                <input type="hidden" name="flight_id" value="{{ t.id }}">
+                                <input type="hidden" name="ticket_class_id" value="3">
+                                <button type="submit" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3">
+                                    <div>
+                                        <strong class="d-block text-primary">Phổ thông</strong>
+                                        <small class="text-muted">Vé tiêu chuẩn</small>
+                                    </div>
+                                    <span class="badge bg-danger rounded-pill fs-6">
+                                        {{ "{:,.0f}".format(t.price|float) }} VNĐ
+                                    </span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <!-- END MODAL -->
+
+        {% endfor %}
+
+        {% if not Ticket %}
+        <div class="col-12 text-center mt-5">
+            <h5 class="text-secondary">
+                Không tìm thấy chuyến bay phù hợp!
+            </h5>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

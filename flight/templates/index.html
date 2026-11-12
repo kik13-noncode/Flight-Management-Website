@@ -1,10 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+
+{% extends 'layout/base.html' %}
+{% block nav %}
+<div class="position-fixed top-0 start-0 w-100 h-100 overflow-hidden" style="z-index: -1;">
+        <img src="https://res.cloudinary.com/i3c1j8ys/image/upload/v1794294470/Gemini_Generated_Image_ni1kwnni1kwnni1k_1.png" class="w-100 h-100 object-fit-cover" alt="Background Flight">
+    </div>
+<!-- Khối Giới thiệu Uy tín Hãng bay -->
+<div class="container my-5 text-center">
+
+    <!-- Tiêu đề thương hiệu -->
+    <div class="mb-5 py-3">
+        <h1 class="fw-bold text-primary display-5">OU AIRLINES</h1>
+        <p class="fs-4 text-dark fw-semibold">Hãng hàng không uy tín & an toàn hàng đầu</p>
+    </div>
+
+    <!-- 3 Cột cam kết uy tín chữ đơn giản -->
+    <div class="row g-4">
+
+        <div class="col-md-4">
+            <div class="p-4 bg-white bg-opacity-75 rounded shadow-sm h-100">
+                <h5 class="fw-bold text-primary mb-2">An Toàn Tuyệt Đối</h5>
+                <p class="text-secondary mb-0">Đội bay hiện đại, đạt chuẩn an toàn hàng không quốc tế với tỷ lệ đúng giờ cao.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="p-4 bg-white bg-opacity-75 rounded shadow-sm h-100">
+                <h5 class="fw-bold text-primary mb-2">Dịch Vụ Tận Tâm</h5>
+                <p class="text-secondary mb-0">Đội ngũ phi công và tiếp viên chuyên nghiệp, luôn sẵn sàng hỗ trợ bạn 24/7.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="p-4 bg-white bg-opacity-75 rounded shadow-sm h-100">
+                <h5 class="fw-bold text-primary mb-2">Giá Vé Tốt Nhất</h5>
+                <p class="text-secondary mb-0">Cam kết chi phí minh bạch, nhiều ưu đãi và đa dạng chặng bay cho mọi hành trình.</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

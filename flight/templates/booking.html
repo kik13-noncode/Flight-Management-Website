@@ -1,0 +1,35 @@
+
+{% extends 'layout/base.html' %}
+{% block nav %}
+
+<div class="container mt-5">
+    <div class="card shadow">
+        <div class="card-body">
+
+            <h4 class="mb-4">Thông tin vé đã chọn</h4>
+
+            <p>Hãng bay: {{ flight.name }}</p>
+            <p>Điểm đi: {{ flight.from_city }}</p>
+            <p>Điểm đến: {{ flight.to_city }}</p>
+
+            <p>Ngày bay:
+                {{ flight.departure_date.strftime('%d/%m/%Y') }}
+            </p>
+
+            <p>Giờ khởi hành:
+                {{ flight.departure.strftime('%H:%M') }}
+            </p>
+
+            <hr>
+
+            <p>Hạng vé: <strong>{{ ticket_class.name }}</strong></p>
+
+            <h4 class="text-danger">
+                {{ "{:,.0f}".format(ticket_class.price) }} VNĐ
+            </h4>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
