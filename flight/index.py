@@ -4,6 +4,7 @@ from flask_login import login_user, logout_user, current_user
 
 from flight import app, db, dao
 # Import admin để Flask nhận diện và khởi tạo trang Admin (/admin)
+from flask_admin import Admin
 import flight.admin
 from flight.models import Flight, TicketClass, User, UserRoleEnum
 
