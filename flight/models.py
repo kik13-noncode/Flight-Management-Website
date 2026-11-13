@@ -18,6 +18,7 @@ class UserRoleEnum(enum.Enum):
 
 class User(db.Model, UserMixin):
     __tablename__ = "user"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(50), nullable=False)
@@ -73,79 +74,83 @@ class TicketClass(db.Model):
 # -------------------------------------------------------------
 if __name__ == "__main__":
     with app.app_context():
-        db.drop_all()
+
         db.create_all()
 
-        Ticket = [
-            {
-                "id": 1,
-                "name": "VietJet Air",
-                "price": "100000",
-                "image": "https://res.cloudinary.com/i3c1j8ys/image/upload/v1794078630/images_2.jpg",
-                "From": "SG",
-                "To": "HN",
-                "DepartureDate": "2026-11-17",
-                "Departure": "08:00",
-                "Arrival": "10:00",
-            },
-            {
-                "id": 2,
-                "name": "VietNam Airlines",
-                "price": "100000",
-                "image": "https://res.cloudinary.com/i3c1j8ys/image/upload/v1794078630/images.jpg",
-                "From": "SG",
-                "To": "HN",
-                "DepartureDate": "2026-11-15",
-                "Departure": "08:00",
-                "Arrival": "10:00",
-            },
-            {
-                "id": 3,
-                "name": "jetstar",
-                "price": "120000",
-                "image": "https://res.cloudinary.com/i3c1j8ys/image/upload/v1794078629/images_3.jpg",
-                "From": "SG",
-                "To": "HN",
-                "DepartureDate": "2026-11-15",
-                "Departure": "08:00",
-                "Arrival": "10:00",
-            },
-            {
-                "id": 4,
-                "name": "Bamboo",
-                "price": "130000",
-                "image": "https://res.cloudinary.com/i3c1j8ys/image/upload/v1794078629/images_1.jpg",
-                "From": "SG",
-                "To": "HN",
-                "DepartureDate": "2026-11-16",
-                "Departure": "08:00",
-                "Arrival": "10:00",
-            },
-        ]
+        import hashlib
+        # u = User(name='admin', username='admin', user_role=UserRoleEnum.ADMIN, password=str(hashlib.md5('12345'.encode('utf-8')).hexdigest()))
+        # db.session.add(u)
 
-        for t in Ticket:
-            c = Flight(
-                name=t["name"],
-                price=float(t["price"]),
-                image=t["image"],
-                from_city=t["From"],
-                to_city=t["To"],
-                departure_date=datetime.strptime(
-                    t["DepartureDate"], "%Y-%m-%d"
-                ).date(),
-                departure=datetime.strptime(t["Departure"], "%H:%M").time(),
-                arrival=datetime.strptime(t["Arrival"], "%H:%M").time(),
-            )
-
-            c.ticket_classes = [
-                TicketClass(
-                    name="Thương gia", price=float(t["price"]) * 1.10
-                ),
-                TicketClass(
-                    name="Phổ thông đặc biệt", price=float(t["price"]) * 1.05
-                ),
-                TicketClass(name="Phổ thông", price=float(t["price"])),
-            ]
-            db.session.add(c)
-
-        db.session.commit()
+        # Ticket = [
+        #     {
+        #         "id": 1,
+        #         "name": "VietJet Air",
+        #         "price": "100000",
+        #         "image": "https://res.cloudinary.com/i3c1j8ys/image/upload/v1794078630/images_2.jpg",
+        #         "From": "SG",
+        #         "To": "HN",
+        #         "DepartureDate": "2026-11-17",
+        #         "Departure": "08:00",
+        #         "Arrival": "10:00",
+        #     },
+        #     {
+        #         "id": 2,
+        #         "name": "VietNam Airlines",
+        #         "price": "100000",
+        #         "image": "https://res.cloudinary.com/i3c1j8ys/image/upload/v1794078630/images.jpg",
+        #         "From": "SG",
+        #         "To": "HN",
+        #         "DepartureDate": "2026-11-15",
+        #         "Departure": "08:00",
+        #         "Arrival": "10:00",
+        #     },
+        #     {
+        #         "id": 3,
+        #         "name": "jetstar",
+        #         "price": "120000",
+        #         "image": "https://res.cloudinary.com/i3c1j8ys/image/upload/v1794078629/images_3.jpg",
+        #         "From": "SG",
+        #         "To": "HN",
+        #         "DepartureDate": "2026-11-15",
+        #         "Departure": "08:00",
+        #         "Arrival": "10:00",
+        #     },
+        #     {
+        #         "id": 4,
+        #         "name": "Bamboo",
+        #         "price": "130000",
+        #         "image": "https://res.cloudinary.com/i3c1j8ys/image/upload/v1794078629/images_1.jpg",
+        #         "From": "SG",
+        #         "To": "HN",
+        #         "DepartureDate": "2026-11-16",
+        #         "Departure": "08:00",
+        #         "Arrival": "10:00",
+        #     },
+        # ]
+        #
+        # for t in Ticket:
+        #     c = Flight(
+        #         name=t["name"],
+        #         price=float(t["price"]),
+        #         image=t["image"],
+        #         from_city=t["From"],
+        #         to_city=t["To"],
+        #         departure_date=datetime.strptime(
+        #             t["DepartureDate"], "%Y-%m-%d"
+        #         ).date(),
+        #         departure=datetime.strptime(t["Departure"], "%H:%M").time(),
+        #         arrival=datetime.strptime(t["Arrival"], "%H:%M").time(),
+        #     )
+        #
+        #     c.ticket_classes = [
+        #         TicketClass(
+        #             name="Thương gia", price=float(t["price"]) * 1.10
+        #         ),
+        #         TicketClass(
+        #             name="Phổ thông đặc biệt", price=float(t["price"]) * 1.05
+        #         ),
+        #         TicketClass(name="Phổ thông", price=float(t["price"])),
+        #     ]
+        #     db.session.add(c)
+        #
+        # db.session.commit()
