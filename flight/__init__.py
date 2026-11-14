@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 
 app.config["SECRET_KEY"] = "flight_secret_key_123456"  # Cần thiết cho session đăng nhập
-app.config["SQLALCHEMY_DATABASE_URI"] = ("mysql+pymysql://root:Flight123@localhost:3306/flightdb?charset=utf8mb4")
+app.config["SQLALCHEMY_DATABASE_URI"] = ("mysql+pymysql://root:Kiet1311@127.0.0.1:3306/flightdb?charset=utf8mb4")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 
 db = SQLAlchemy(app=app)
