@@ -1,4 +1,3 @@
-
 {% extends 'layout/base.html' %}
 {% block nav %}
 
@@ -22,11 +21,20 @@
 
             <hr>
 
-            <p>Hạng vé: <strong>{{ ticket_class.name }}</strong></p>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="mb-1">Hạng vé: <strong>{{ ticket_class.name }}</strong></p>
 
-            <h4 class="text-danger">
-                {{ "{:,.0f}".format(ticket_class.price) }} VNĐ
-            </h4>
+                    <h4 class="text-danger mb-0">
+                        {{ "{:,.0f}".format(ticket_class.price) }} VNĐ
+                    </h4>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('search') }}" class="btn btn-outline-secondary">Chỉnh sửa thông tin</a>
+                    <button type="submit" class="btn btn-success">Xác nhận thông tin</button>
+                </div>
+            </div>
 
         </div>
     </div>

@@ -2,9 +2,8 @@ from datetime import datetime
 from flask import redirect, render_template, request
 from flask_login import login_user, logout_user, current_user
 
-from flight import app, db, dao
-# Import admin để Flask nhận diện và khởi tạo trang Admin (/admin)
-import flight.admin
+# 1. Thêm admin vào dòng import này
+from flight import app, db, dao, login, admin
 from flight.models import Flight, TicketClass, User, UserRoleEnum
 
 
@@ -14,20 +13,19 @@ def index():
     to_city = request.args.get("to_city")
     departure_date = request.args.get("departure_date")
 
-    # Gọi DAO để query lọc từ MySQL Database
     tickets = dao.load_flight(
         from_city=from_city,
         to_city=to_city,
         departure_date=departure_date,
     )
 
-    # Nếu có tìm kiếm thì trả về show.html, không thì index.html
     if from_city or to_city or departure_date:
         return render_template("show.html", Ticket=tickets)
 
     return render_template("index.html", Ticket=tickets)
 
 
+# 2. Chỉ giữ lại 1 hàm /login duy nhất (xóa hàm login_process bị trùng ở dưới)
 @app.route("/login", methods=["GET", "POST"])
 def login_view():
     msg = ""
@@ -35,10 +33,15 @@ def login_view():
         username = request.form.get("username")
         password = request.form.get("password")
 
-        # Gọi hàm kiểm tra đăng nhập từ dao
+        # Lưu ý: kiểm tra trong dao.py hàm xác thực tên là check_login hay authorize để gọi cho đúng
         user = dao.check_login(username=username, password=password)
         if user:
             login_user(user)
+
+            next_page = request.args.get("next")
+            if next_page:
+                return redirect(next_page)
+
             if user.user_role == UserRoleEnum.ADMIN:
                 return redirect("/admin")
             return redirect("/")
@@ -59,7 +62,6 @@ def register_view():
         avatar = request.files.get("avatar")
 
         if password == confirm:
-            # Gọi hàm add_user trong dao để xử lý lưu vào CSDL (hoặc upload Cloudinary)
             res = dao.add_user(name=name, username=username, password=password, avatar=avatar)
             if res:
                 return redirect("/login")
@@ -74,7 +76,7 @@ def register_view():
 @app.route("/logout")
 def logout_view():
     logout_user()
-    return redirect("/")
+    return redirect("/login")
 
 
 @app.route("/trangchu")
@@ -92,13 +94,17 @@ def chon_hang_ve():
     flight_id = request.form.get("flight_id")
     ticket_class_id = request.form.get("ticket_class_id")
 
-    # Lấy trực tiếp chuyến bay và hạng vé từ CSDL
     flight = Flight.query.get_or_404(flight_id)
     ticket_class = TicketClass.query.filter_by(
         id=ticket_class_id, flight_id=flight_id
     ).first_or_404()
 
     return render_template("booking.html", flight=flight, ticket_class=ticket_class)
+
+
+@login.user_loader
+def load_user(user_id):
+    return dao.get_user_by_id(user_id)
 
 
 if __name__ == "__main__":
