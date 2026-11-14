@@ -37,7 +37,7 @@ def load_flight(from_city=None, to_city=None, departure_date=None):
 def check_login(username, password):
     if username and password:
         # Nếu dùng hash MD5 cho password, bạn có thể bỏ comment dòng bên dưới:
-        # password = hashlib.md5(password.strip().encode('utf-8')).hexdigest()
+        password = hashlib.md5(password.strip().encode('utf-8')).hexdigest()
         return User.query.filter(
             User.username == username.strip(), User.password == password.strip()
         ).first()
