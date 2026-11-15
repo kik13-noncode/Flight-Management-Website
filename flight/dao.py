@@ -1,7 +1,8 @@
 from datetime import datetime
-import hashlib
-from flight import db
+from flight import db, app
 from flight.models import Flight, TicketClass, User, UserRoleEnum
+import cloudinary.uploader
+import hashlib
 
 
 def load_flight(from_city=None, to_city=None, departure_date=None):
@@ -49,22 +50,17 @@ def get_user_by_id(user_id):
 
 
 def add_user(name, username, password, avatar=None):
-    user_exists = User.query.filter_by(username=username.strip()).first()
-    if user_exists:
-        return False
+    password = str(hashlib.md5(password.strip().encode('utf-8')).hexdigest())
+    u = User(name=name.strip(), username=username.strip(), password=password,
+             avatar="https://res.cloudinary.com/i3c1j8ys/image/upload/v1794078630/images_2.jpg",
+             user_role=UserRoleEnum.USER
+             )
 
-    avatar_path = (
-        "https://res.cloudinary.com/i3c1j8ys/image/upload/v1794078630/images_2.jpg"
-    )
+    if avatar:
+        res = cloudinary.uploader.upload(avatar)
+        print(res)
+        u.avatar = res['secure_url']
 
-    user = User(
-        name=name.strip(),
-        username=username.strip(),
-        password=password.strip(),
-        avatar=avatar_path,
-        user_role=UserRoleEnum.USER,
-    )
-
-    db.session.add(user)
+    db.session.add(u)
     db.session.commit()
     return True

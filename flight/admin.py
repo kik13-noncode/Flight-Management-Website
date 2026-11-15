@@ -1,6 +1,4 @@
-from dataclasses import replace
-
-from flask import redirect
+from flask import redirect,render_template
 from flask_admin import Admin, BaseView, expose
 from flask_admin.contrib.sqla import ModelView
 from flask_login import current_user, logout_user
@@ -73,7 +71,7 @@ class LogoutView(BaseView):
     @expose("/")
     def index(self):
         logout_user()
-        return redirect("/admin")
+        return redirect("/")
 
     def is_accessible(self) -> bool:
         return current_user.is_authenticated
