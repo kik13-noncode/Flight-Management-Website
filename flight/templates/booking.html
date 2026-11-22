@@ -5,19 +5,45 @@
     <div class="card shadow">
         <div class="card-body">
 
-            <h4 class="mb-4">Thông tin vé đã chọn</h4>
+            {% if msg %}
+            <div class="alert alert-info">
+                {{ msg }}
+            </div>
+            {% endif %}
 
-            <p>Hãng bay: {{ flight.name }}</p>
-            <p>Điểm đi: {{ flight.from_city }}</p>
-            <p>Điểm đến: {{ flight.to_city }}</p>
+            <div class="row">
+                <div class="col-md-6">
+                    <h4 class="mb-4">Thông tin vé đã chọn</h4>
 
-            <p>Ngày bay:
-                {{ flight.departure_date.strftime('%d/%m/%Y') }}
-            </p>
+                    <p>Hãng bay: <strong>{{ flight.name }}</strong></p>
+                    <p>Điểm đi: <strong>{{ flight.from_city }}{% if flight.from_airport %} - Sân bay {{ flight.from_airport.name }}{% endif %}</strong></p>
+                    <p>Điểm đến: <strong>{{ flight.to_city }}{% if flight.to_airport %} - Sân bay {{ flight.to_airport.name }}{% endif %}</strong></p>
 
-            <p>Giờ khởi hành:
-                {{ flight.departure.strftime('%H:%M') }}
-            </p>
+                    <p>Ngày bay:
+                        <strong>{{ flight.departure_date.strftime('%d/%m/%Y') }}</strong>
+                    </p>
+
+                    <p>Giờ khởi hành:
+                        <strong>{{ flight.departure.strftime('%H:%M') }}</strong>
+                    </p>
+
+                    {% if seat %}
+                    <p>Số ghế được cấp: <span class="badge bg-primary fs-6">{{ seat.seat_number }}</span></p>
+                    {% else %}
+                    <p class="text-danger"><strong>Hết ghế trống cho hạng vé này!</strong></p>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6 border-start">
+                    <h4 class="mb-4">Thông tin hành khách</h4>
+
+                    {% if current_user.is_authenticated %}
+                    <p>Họ tên: <strong>{{ current_user.name }}</strong></p>
+                    <p>CCCD: <strong>{{ current_user.cccd or 'Chưa cập nhật' }}</strong></p>
+                    <p>Số điện thoại: <strong>{{ current_user.phone or 'Chưa cập nhật' }}</strong></p>
+                    {% endif %}
+                </div>
+            </div>
 
             <hr>
 
@@ -32,7 +58,15 @@
 
                 <div class="d-flex gap-2">
                     <a href="{{ url_for('search') }}" class="btn btn-outline-secondary">Chỉnh sửa thông tin</a>
-                    <button type="submit" class="btn btn-success">Xác nhận thông tin</button>
+
+                    {% if seat %}
+                    <form method="post" action="/xac-nhan-dat-ve" class="m-0">
+                        <input type="hidden" name="seat_id" value="{{ seat.id }}">
+                        <input type="hidden" name="flight_id" value="{{ flight.id }}">
+                        <input type="hidden" name="ticket_class_id" value="{{ ticket_class.id }}">
+                        <button type="submit" class="btn btn-success">Xác nhận thông tin</button>
+                    </form>
+                    {% endif %}
                 </div>
             </div>
 
