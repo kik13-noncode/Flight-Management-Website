@@ -12,6 +12,14 @@
                 <li class="nav-item">
                     <a class="nav-link text-white" href="{{ url_for('ve_cua_toi') }}">Vé của tôi</a>
                 </li>
+                {% if current_user.is_authenticated and current_user.user_role.name in ['EMPLOYEE', 'ADMIN'] %}
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="/staff/ban-ve">Bán vé</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="/staff/lap-lich">Lập lịch chuyến bay</a>
+                </li>
+                {% endif %}
             </ul>
             <ul class="navbar-nav ms-auto">
                 {% if current_user.is_authenticated %}

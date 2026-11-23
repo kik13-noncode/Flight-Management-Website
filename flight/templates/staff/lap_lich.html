@@ -1,0 +1,176 @@
+{% extends 'layout/base.html' %}
+{% block nav %}
+{% set sa = form.getlist('stop_airport') if form else [] %}
+{% set sm = form.getlist('stop_minutes') if form else [] %}
+{% set sn = form.getlist('stop_note') if form else [] %}
+
+<div class="container">
+    <h4 class="mb-3">Lập lịch chuyến bay</h4>
+    {% include 'staff/_flash.html' %}
+
+    {% if errors %}
+    <div class="alert alert-danger">
+        <strong>Chưa lưu được lịch chuyến bay:</strong>
+        <ul class="mb-0">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+
+    <form method="POST" id="scheduleForm">
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white"><strong>Thông tin chuyến bay</strong></div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Mã / tên chuyến bay</label>
+                        <input class="form-control" name="name" maxlength="50" required
+                               value="{{ form.get('name', '') if form }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Sân bay đi</label>
+                        <select class="form-select" name="from_airport" required>
+                            <option value="">Chọn sân bay</option>
+                            {% for a in airports %}
+                            <option value="{{ a.id }}" {{ 'selected' if form and form.get('from_airport') == a.id }}>{{ a.name }} ({{ a.city }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Sân bay đến</label>
+                        <select class="form-select" name="to_airport" required>
+                            <option value="">Chọn sân bay</option>
+                            {% for a in airports %}
+                            <option value="{{ a.id }}" {{ 'selected' if form and form.get('to_airport') == a.id }}>{{ a.name }} ({{ a.city }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Ngày khởi hành</label>
+                        <input type="date" class="form-control" name="departure_date" required
+                               value="{{ form.get('departure_date', '') if form }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Giờ khởi hành</label>
+                        <input type="time" class="form-control" name="departure_time" required
+                               value="{{ form.get('departure_time', '') if form }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Thời gian bay (phút)</label>
+                        <input type="number" class="form-control" name="duration" min="{{ rules.min_flight_minutes }}" required
+                               value="{{ form.get('duration', '') if form }}">
+                        <div class="form-text">Tối thiểu {{ rules.min_flight_minutes }} phút. Giờ đến = giờ khởi hành + thời gian bay + thời gian dừng.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white"><strong>Hạng vé, giá và số ghế</strong></div>
+            <div class="card-body">
+                <div class="row g-2 mb-2 align-items-end">
+                    <div class="col-md-4"><label class="form-label mb-0">Hạng 1: Thương gia</label></div>
+                    <div class="col-md-4"><input type="number" min="0" step="1000" class="form-control" name="price_1" placeholder="Giá vé (VNĐ)" required value="{{ form.get('price_1', '') if form }}"></div>
+                    <div class="col-md-4"><input type="number" min="0" class="form-control" name="seats_1" placeholder="Số ghế" required value="{{ form.get('seats_1', '') if form }}"></div>
+                </div>
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-4"><label class="form-label mb-0">Hạng 2: Phổ thông</label></div>
+                    <div class="col-md-4"><input type="number" min="0" step="1000" class="form-control" name="price_2" placeholder="Giá vé (VNĐ)" required value="{{ form.get('price_2', '') if form }}"></div>
+                    <div class="col-md-4"><input type="number" min="0" class="form-control" name="seats_2" placeholder="Số ghế" required value="{{ form.get('seats_2', '') if form }}"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <strong>Sân bay trung gian (tối đa {{ rules.max_stops }}, dừng {{ rules.min_stop_minutes }} - {{ rules.max_stop_minutes }} phút)</strong>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="addStop">Thêm sân bay trung gian</button>
+            </div>
+            <div class="card-body" id="stops">
+                {% for i in range(sa|length) %}
+                <div class="row g-2 mb-2 stop-row">
+                    <div class="col-md-4">
+                        <select class="form-select" name="stop_airport">
+                            <option value="">Chọn sân bay</option>
+                            {% for a in airports %}
+                            <option value="{{ a.id }}" {{ 'selected' if sa[i] == a.id }}>{{ a.name }} ({{ a.city }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3"><input type="number" class="form-control" name="stop_minutes" placeholder="Thời gian dừng (phút)" value="{{ sm[i] if i < sm|length }}"></div>
+                    <div class="col-md-4"><input class="form-control" name="stop_note" placeholder="Ghi chú" value="{{ sn[i] if i < sn|length }}"></div>
+                    <div class="col-md-1 d-grid"><button type="button" class="btn btn-outline-danger btn-sm remove-row">Xóa</button></div>
+                </div>
+                {% endfor %}
+                <div class="text-muted small" id="noStops" style="display:none">Bay thẳng, không có sân bay trung gian.</div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mb-4">
+            <a class="btn btn-outline-secondary" href="{{ url_for('lap_lich.schedule_view') }}">Hủy</a>
+            <button class="btn btn-success" type="submit">Lưu lịch chuyến bay</button>
+        </div>
+    </form>
+
+    <h5>Các chuyến bay vừa lập</h5>
+    <div class="table-responsive">
+        <table class="table table-sm bg-white shadow-sm align-middle">
+            <thead class="table-light">
+            <tr><th>Mã</th><th>Tuyến</th><th>Khởi hành</th><th>Đến (dự kiến)</th><th>Sân bay TG</th><th>Số ghế</th></tr>
+            </thead>
+            <tbody>
+            {% for f in recent %}
+            <tr>
+                <td>{{ f.name }}</td>
+                <td>{{ f.from_city }} &rarr; {{ f.to_city }}</td>
+                <td>{{ f.departure_date.strftime('%d/%m/%Y') }} {{ f.departure.strftime('%H:%M') }}</td>
+                <td>{{ f.arrival.strftime('%H:%M') }}</td>
+                <td>{% for st in f.stops %}{{ st.airport.name }} ({{ st.stop_minutes }}'){{ ', ' if not loop.last }}{% else %}Bay thẳng{% endfor %}</td>
+                <td>{{ f.seats|length }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="text-center text-secondary">Chưa có chuyến bay nào.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<template id="stopTpl">
+    <div class="row g-2 mb-2 stop-row">
+        <div class="col-md-4">
+            <select class="form-select" name="stop_airport">
+                <option value="">Chọn sân bay</option>
+                {% for a in airports %}<option value="{{ a.id }}">{{ a.name }} ({{ a.city }})</option>{% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3"><input type="number" class="form-control" name="stop_minutes" placeholder="Thời gian dừng (phút)"></div>
+        <div class="col-md-4"><input class="form-control" name="stop_note" placeholder="Ghi chú"></div>
+        <div class="col-md-1 d-grid"><button type="button" class="btn btn-outline-danger btn-sm remove-row">Xóa</button></div>
+    </div>
+</template>
+
+<script>
+const MAX_STOPS = {{ rules.max_stops }};
+
+function sync() {
+    const stops = document.querySelectorAll('#stops .stop-row').length;
+    document.getElementById('noStops').style.display = stops ? 'none' : 'block';
+}
+
+document.getElementById('addStop').addEventListener('click', function () {
+    const box = document.getElementById('stops');
+    if (box.querySelectorAll('.stop-row').length >= MAX_STOPS) {
+        alert('Chỉ được tối đa ' + MAX_STOPS + ' sân bay trung gian.');
+        return;
+    }
+    box.appendChild(document.getElementById('stopTpl').content.cloneNode(true));
+    sync();
+});
+document.addEventListener('click', function (e) {
+    if (e.target.classList.contains('remove-row')) {
+        e.target.closest('.row').remove();
+        sync();
+    }
+});
+sync();
+</script>
+{% endblock %}

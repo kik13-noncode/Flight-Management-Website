@@ -3,6 +3,12 @@ from flask_login import login_user, logout_user, current_user
 from flight import app, dao, login
 from flight.models import Flight, TicketClass, UserRoleEnum, Seat
 from flight.zalopay import create_zalopay_payment, query_zalopay_order
+from flight.ban_ve import ban_ve_bp
+from flight.lap_lich import lap_lich_bp
+
+# Khu vực nhân viên: bán vé, lập lịch chuyến bay
+app.register_blueprint(ban_ve_bp)
+app.register_blueprint(lap_lich_bp)
 
 
 @app.route("/")
@@ -40,6 +46,8 @@ def login_view():
 
             if user.user_role == UserRoleEnum.ADMIN:
                 return redirect("/admin")
+            if user.user_role == UserRoleEnum.EMPLOYEE:
+                return redirect("/staff/ban-ve")
             return redirect("/")
         else:
             msg = "Tên đăng nhập hoặc mật khẩu không chính xác!"

@@ -1,0 +1,117 @@
+{% extends 'layout/base.html' %}
+{% block nav %}
+<div class="container">
+    <h4 class="mb-3">Bán vé: chọn hạng vé, ghế và nhập thông tin khách</h4>
+    {% include 'staff/_flash.html' %}
+
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+            <strong>{{ flight.name }}</strong> &middot; {{ flight.from_city }} &rarr; {{ flight.to_city }}
+            &middot; {{ flight.departure_date.strftime('%d/%m/%Y') }}
+            {{ flight.departure.strftime('%H:%M') }} - {{ flight.arrival.strftime('%H:%M') }}
+            {% if flight.stops %}
+            <div class="small text-muted">Dừng tại:
+                {% for st in flight.stops %}{{ st.airport.name }} ({{ st.stop_minutes }} phút){{ ', ' if not loop.last }}{% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if errors %}
+    <div class="alert alert-danger">
+        <ul class="mb-0">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+
+    <form method="POST" id="sellForm">
+        {% for group in seat_map %}
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <strong>{{ group.name }}</strong> - {{ "{:,.0f}".format(group.price) }} VNĐ / ghế
+                <span class="text-muted small">
+                    ({{ group.seats|rejectattr('is_booked')|list|length }}/{{ group.seats|length }} ghế trống)
+                </span>
+            </div>
+            <div class="card-body d-flex flex-wrap gap-2">
+                {% for s in group.seats %}
+                {% if not s.is_booked %}
+                <input type="checkbox" class="btn-check seat-check" id="seat{{ s.id }}" name="seat_id"
+                       value="{{ s.id }}" autocomplete="off"
+                       data-price="{{ group.price }}" data-label="{{ s.seat_number }}" data-class="{{ group.name }}"
+                       {{ 'checked' if s.id in selected }}>
+                <label class="btn btn-outline-primary btn-sm" style="min-width:48px" for="seat{{ s.id }}">{{ s.seat_number }}</label>
+                {% else %}
+                <button type="button" class="btn btn-secondary btn-sm" style="min-width:48px" disabled>{{ s.seat_number }}</button>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+        <div class="small text-muted mb-3">
+            Ghế xám là ghế đã bán. Muốn đổi ghế: bỏ chọn ghế cũ rồi chọn ghế mới. Chọn nhiều ghế sẽ gộp chung 1 hóa đơn.
+        </div>
+
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white"><strong>Thông tin hành khách</strong></div>
+            <div class="card-body">
+                <div id="emptyMsg" class="text-secondary">Chưa chọn ghế nào.</div>
+                <div id="passengers"></div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Tổng tiền: <span id="total" class="text-danger">0 VNĐ</span></h5>
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-secondary" href="{{ url_for('ban_ve.search_view') }}">Hủy</a>
+                <button type="submit" id="submitBtn" class="btn btn-success" disabled>Thu tiền và xuất vé</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+const PREFILL = {{ prefill|tojson }};
+const checks = document.querySelectorAll('input.seat-check');
+const box = document.getElementById('passengers');
+const emptyMsg = document.getElementById('emptyMsg');
+const totalEl = document.getElementById('total');
+const submitBtn = document.getElementById('submitBtn');
+
+function esc(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function buildRow(c) {
+    const id = c.value, p = PREFILL[id] || {};
+    const div = document.createElement('div');
+    div.className = 'row g-2 align-items-end mb-2';
+    div.id = 'row' + id;
+    div.innerHTML =
+        '<div class="col-md-2"><strong>Ghế ' + esc(c.dataset.label) + '</strong><br>' +
+        '<small class="text-muted">' + esc(c.dataset.class) + '</small></div>' +
+        '<div class="col-md-4"><input class="form-control" name="name_' + id + '" placeholder="Họ tên" maxlength="100" required value="' + esc(p.name) + '"></div>' +
+        '<div class="col-md-3"><input class="form-control" name="id_number_' + id + '" placeholder="CMND/CCCD (9 hoặc 12 số)" pattern="\\d{9}|\\d{12}" required value="' + esc(p.id_number) + '"></div>' +
+        '<div class="col-md-3"><input class="form-control" name="phone_' + id + '" placeholder="Điện thoại (10 số)" pattern="0\\d{9}" required value="' + esc(p.phone) + '"></div>';
+    return div;
+}
+
+function refresh() {
+    let total = 0, n = 0;
+    checks.forEach(function (c) {
+        const row = document.getElementById('row' + c.value);
+        if (c.checked) {
+            total += parseFloat(c.dataset.price); n++;
+            if (!row) box.appendChild(buildRow(c));
+        } else if (row) {
+            row.remove();
+        }
+    });
+    totalEl.textContent = total.toLocaleString('vi-VN') + ' VNĐ';
+    emptyMsg.style.display = n ? 'none' : 'block';
+    submitBtn.disabled = n === 0;
+}
+
+checks.forEach(function (c) { c.addEventListener('change', refresh); });
+refresh();
+</script>
+{% endblock %}
