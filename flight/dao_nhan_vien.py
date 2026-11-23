@@ -1,8 +1,3 @@
-"""Xử lý dữ liệu cho chức năng của nhân viên: BÁN VÉ (UC02) và LẬP LỊCH CHUYẾN BAY.
-
-File này nằm riêng để không đụng vào dao.py của các bạn khác.
-Dùng lại bảng có sẵn: Flight, Seat (is_booked), TicketClass, Airport.
-"""
 import re
 from datetime import datetime, timedelta
 
