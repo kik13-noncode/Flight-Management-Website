@@ -1,0 +1,80 @@
+{% extends 'layout/base.html' %}
+
+{% block nav %}
+<div class="container my-5" style="max-width: 900px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold mb-0">Danh sách vé của tôi</h4>
+        <a href="{{ url_for('search') }}" class="btn btn-primary btn-sm">+ Đặt thêm vé</a>
+    </div>
+
+    {% if booked_seats %}
+        {% for s in booked_seats %}
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
+            <div class="row g-0">
+                <!-- Thân vé bên trái -->
+                <div class="col-md-8 p-4 bg-white">
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                        <h6 class="mb-0 fw-bold text-primary">OU AIRLINES — FLIGHT TICKET</h6>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle">ĐÃ ĐẶT VÉ</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center my-2">
+                        <div>
+                            <small class="text-muted d-block">Điểm đi</small>
+                            <h5 class="fw-bold mb-0">{{ s.flight.from_city }}</h5>
+                            {% if s.flight.from_airport %}
+                            <small class="text-secondary">Sân bay {{ s.flight.from_airport.name }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="text-center text-primary px-3">
+                            <span class="fw-semibold d-block">{{ s.flight.name }}</span>
+                            <span>✈ ──────────</span>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted d-block">Điểm đến</small>
+                            <h5 class="fw-bold mb-0">{{ s.flight.to_city }}</h5>
+                            {% if s.flight.to_airport %}
+                            <small class="text-secondary">Sân bay {{ s.flight.to_airport.name }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row pt-2 border-top g-2 mt-2">
+                        <div class="col-4">
+                            <small class="text-muted d-block">Hành khách</small>
+                            <strong>{{ current_user.name }}</strong>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">Ngày bay</small>
+                            <strong>{{ s.flight.departure_date.strftime('%d/%m/%Y') }}</strong>
+                        </div>
+                        <div class="col-4 text-end">
+                            <small class="text-muted d-block">Giờ khởi hành</small>
+                            <strong>{{ s.flight.departure.strftime('%H:%M') }}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cuống vé bên phải -->
+                <div class="col-md-4 p-4 bg-light d-flex flex-column justify-content-center align-items-center text-center" style="border-left: 2px dashed #cbd5e1;">
+                    <span class="text-muted small">Hạng ghế</span>
+                    <strong class="mb-2">{{ s.seat_type }}</strong>
+
+                    <div class="w-100 py-2 bg-white rounded-3 border">
+                        <small class="text-muted d-block">SỐ GHẾ</small>
+                        <span class="fs-3 fw-bold text-primary">{{ s.seat_number }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="card shadow-sm border-0 rounded-4 p-5 text-center">
+            <h5 class="text-secondary mb-3">Bạn chưa đặt vé chuyến bay nào!</h5>
+            <div>
+                <a href="{{ url_for('search') }}" class="btn btn-primary">Tìm chuyến bay ngay</a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

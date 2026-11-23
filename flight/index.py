@@ -1,12 +1,8 @@
-from datetime import datetime
-from flask import redirect, render_template, request
+from flask import redirect, render_template, request, jsonify
 from flask_login import login_user, logout_user, current_user
-
-from flight import app, db, dao
-# Import admin để Flask nhận diện và khởi tạo trang Admin (/admin)
-from flask_admin import Admin
-import flight.admin
-from flight.models import Flight, TicketClass, User, UserRoleEnum
+from flight import app, dao, login
+from flight.models import Flight, TicketClass, UserRoleEnum, Seat
+from flight.zalopay import create_zalopay_payment, query_zalopay_order
 
 
 @app.route("/")
@@ -27,7 +23,6 @@ def index():
     return render_template("index.html", Ticket=tickets)
 
 
-# 2. Chỉ giữ lại 1 hàm /login duy nhất (xóa hàm login_process bị trùng ở dưới)
 @app.route("/login", methods=["GET", "POST"])
 def login_view():
     msg = ""
@@ -35,7 +30,6 @@ def login_view():
         username = request.form.get("username")
         password = request.form.get("password")
 
-        # Lưu ý: kiểm tra trong dao.py hàm xác thực tên là check_login hay authorize để gọi cho đúng
         user = dao.check_login(username=username, password=password)
         if user:
             login_user(user)
@@ -62,13 +56,17 @@ def register_view():
         password = request.form.get("password")
         confirm = request.form.get("confirm")
         avatar = request.files.get("avatar")
-
+        cccd = request.form.get("cccd")
+        phone = request.form.get("phone")
         if password == confirm:
-            res = dao.add_user(name=name, username=username, password=password, avatar=avatar)
-            if res:
+            err = dao.add_user(name=name, username=username, password=password, avatar=avatar, cccd=cccd, phone=phone)
+            if not err:
                 return redirect("/login")
             else:
-                msg = "Tên đăng nhập đã tồn tại hoặc có lỗi xảy ra!"
+                if "Duplicate entry" in err:
+                    msg = "Tên đăng nhập hoặc CCCD đã tồn tại trong hệ thống!"
+                else:
+                    msg = f"Đăng ký không thành công! Chi tiết lỗi: {err}"
         else:
             msg = "Mật khẩu xác nhận không trùng khớp!"
 
@@ -91,22 +89,107 @@ def search():
     return render_template("Search.html")
 
 
+@login.user_loader
+def load_user(user_id):
+    return dao.get_user_by_id(user_id)
+
+
 @app.route("/chon-hang-ve", methods=["POST"])
 def chon_hang_ve():
+    if not current_user.is_authenticated:
+        return redirect("/login")
+
     flight_id = request.form.get("flight_id")
     ticket_class_id = request.form.get("ticket_class_id")
 
     flight = Flight.query.get_or_404(flight_id)
-    ticket_class = TicketClass.query.filter_by(
-        id=ticket_class_id, flight_id=flight_id
-    ).first_or_404()
+    ticket_class = TicketClass.query.filter_by(id=ticket_class_id, flight_id=flight_id).first_or_404()
+    seat = dao.find_seat(flight.id, ticket_class.name)
 
-    return render_template("booking.html", flight=flight, ticket_class=ticket_class)
+    return render_template("booking.html", flight=flight, ticket_class=ticket_class, seat=seat)
 
 
-@login.user_loader
-def load_user(user_id):
-    return dao.get_user_by_id(user_id)
+@app.route("/xac-nhan-dat-ve", methods=["POST"])
+def xac_nhan_dat_ve():
+    if not current_user.is_authenticated:
+        return redirect("/login")
+
+    seat_id = request.form.get("seat_id")
+    flight_id = request.form.get("flight_id")
+    ticket_class_id = request.form.get("ticket_class_id")
+
+    seat = Seat.query.get_or_404(seat_id)
+    flight = Flight.query.get_or_404(flight_id)
+    ticket_class = TicketClass.query.get_or_404(ticket_class_id)
+
+    return render_template(
+        "pay.html",
+        flight=flight,
+        ticket_class=ticket_class,
+        seat=seat,
+        msg="Xác nhận thông tin thành công! Vui lòng tiến hành thanh toán."
+    )
+
+
+@app.route("/thanh-toan", methods=["POST"])
+def thanh_toan():
+    if not current_user.is_authenticated:
+        return redirect("/login")
+
+    amount = request.form.get("amount")
+    seat_id = request.form.get("seat_id")
+    flight_id = request.form.get("flight_id")
+    ticket_class_id = request.form.get("ticket_class_id")
+
+    res = create_zalopay_payment(
+        amount=amount,
+        seat_id=seat_id,
+        app_user=current_user.username
+    )
+
+    if res.get("return_code") == 1:
+        seat = Seat.query.get_or_404(seat_id)
+        flight = Flight.query.get_or_404(flight_id)
+        ticket_class = TicketClass.query.get_or_404(ticket_class_id)
+
+        return render_template(
+            "pay.html",
+            flight=flight,
+            ticket_class=ticket_class,
+            seat=seat,
+            qr_code=res.get("qr_code"),
+            app_trans_id=res.get("app_trans_id"),
+            msg="Đã tạo mã QR ZaloPay! Vui lòng mở app ZaloPay Sandbox để quét mã."
+        )
+
+    return f"Lỗi tạo thanh toán ZaloPay: {res.get('return_message')} - {res.get('sub_return_message')}"
+
+
+@app.route("/kiem-tra-thanh-toan/<app_trans_id>")
+def kiem_tra_thanh_toan(app_trans_id):
+    if not current_user.is_authenticated:
+        return jsonify({"paid": False})
+
+    seat_id = request.args.get("seat_id")
+    res = query_zalopay_order(app_trans_id)
+
+    if res.get("return_code") == 1:
+        if seat_id:
+            seat = Seat.query.get(seat_id)
+            if seat and not seat.user_id:
+                dao.user_booking(seat_id=seat_id, user_id=current_user.id)
+        return jsonify({"paid": True})
+
+    return jsonify({"paid": False})
+
+
+@app.route("/ve-cua-toi")
+def ve_cua_toi():
+    if not current_user.is_authenticated:
+        return redirect("/login")
+
+    booked_seats = dao.get_user_tickets(current_user.id)
+    return render_template("myTickets.html", booked_seats=booked_seats)
 
 
 if __name__ == "__main__":

@@ -10,7 +10,7 @@
                     <a class="nav-link text-white" href="/search">✈️Tìm chuyến bay</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-white" href="#">Tra cứu chuyến bay</a>
+                    <a class="nav-link text-white" href="{{ url_for('ve_cua_toi') }}">Vé của tôi</a>
                 </li>
             </ul>
             <ul class="navbar-nav ms-auto">
@@ -20,7 +20,7 @@
                         <img src="{{ current_user.avatar }}" width="30" height="30"
                              class="rounded-circle object-fit-cover"/>
 
-                      {{ current_user.username }}
+                      {{ current_user.name }}
                     </a>
                 </li>
 
