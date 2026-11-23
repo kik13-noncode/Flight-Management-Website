@@ -1,8 +1,3 @@
-"""Các bảng riêng cho chức năng nhân viên (bán vé tại quầy, lập lịch chuyến bay).
-
-Nằm ở file riêng để không sửa models.py của các bạn khác. Dùng lại các bảng có sẵn:
-User, Airport, Flight, TicketClass, Seat (ghế đã bán thì Seat.is_booked = True).
-"""
 from datetime import datetime
 
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
