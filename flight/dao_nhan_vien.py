@@ -11,12 +11,11 @@ from flight.models_nhan_vien import (IntermediateStop, Invoice, Payment,
 
 DEFAULT_IMAGE = "https://res.cloudinary.com/i3c1j8ys/image/upload/v1794078630/images_2.jpg"
 
-# Hai hạng vé theo đề (khớp với dao.find_seat của phần đặt vé online):
 # (tên hạng = Seat.seat_type, tiền tố số ghế)
 SEAT_TYPES = [("Thương gia", "E"), ("Phổ thông", "F")]
 
 # ---------------------------------------------------------------------
-# QUY ĐỊNH (admin được phép thay đổi, nên đọc từ bảng Regulation)
+# QUY ĐỊNH (admin được phép thay đổi)
 # ---------------------------------------------------------------------
 DEFAULT_RULES = {
     "min_flight_minutes": (30, "Thời gian bay tối thiểu (phút)"),
