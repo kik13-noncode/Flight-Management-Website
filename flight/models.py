@@ -16,6 +16,7 @@ class UserRoleEnum(enum.Enum):
 
 class User(db.Model, UserMixin):
     __tablename__ = "user"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(50), nullable=False)
@@ -123,7 +124,7 @@ class Seat(db.Model):
 # -------------------------------------------------------------
 if __name__ == "__main__":
     with app.app_context():
-        db.drop_all()
+
         db.create_all()
 
         # Nạp đủ 10 sân bay với id là các chữ cái đầu
