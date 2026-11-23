@@ -1,18 +1,9 @@
-"""Tạo các bảng của phần nhân viên + dữ liệu mẫu để chạy thử.
-
-Thứ tự chạy (đứng ở thư mục gốc của project):
-    1) python -m flight.models        (của nhóm: tạo bảng cũ, sân bay, chuyến bay mẫu - chạy 1 lần)
-    2) python -m flight.seed_staff    (file này: tạo bảng mới, quy định, tài khoản nhân viên, vài chuyến mẫu)
-
-Tài khoản tạo ra:  nhanvien / 12345  (nhân viên)   và   admin / 12345  (quản trị)
-File này chạy nhiều lần không bị trùng dữ liệu.
-"""
 import hashlib
 from datetime import datetime, timedelta
 
 from flight import app, db
 from flight import dao_nhan_vien as dao
-from flight import models_nhan_vien  # noqa: F401  (để db.create_all() tạo bảng mới)
+from flight import models_nhan_vien  
 from flight.models import Airport, Flight, User, UserRoleEnum
 
 # Chỉ dùng khi chưa chạy `python -m flight.models` (bảng sân bay còn trống)
