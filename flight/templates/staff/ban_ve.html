@@ -1,0 +1,84 @@
+{% extends 'layout/base.html' %}
+{% block nav %}
+<div class="container">
+    <h4 class="mb-3">Bán vé tại quầy</h4>
+    {% include 'staff/_flash.html' %}
+
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('ban_ve.search_view') }}">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Sân bay đi</label>
+                        <select class="form-select" name="from_city">
+                            <option value="">Tất cả</option>
+                            {% for c in cities %}
+                            <option value="{{ c }}" {{ 'selected' if args.from_city == c }}>{{ c }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Sân bay đến</label>
+                        <select class="form-select" name="to_city">
+                            <option value="">Tất cả</option>
+                            {% for c in cities %}
+                            <option value="{{ c }}" {{ 'selected' if args.to_city == c }}>{{ c }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Ngày bay</label>
+                        <input type="date" class="form-control" name="departure_date" value="{{ args.departure_date }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Mã chuyến bay</label>
+                        <input type="text" class="form-control" name="name" value="{{ args.name }}">
+                    </div>
+                    <div class="col-md-2 d-grid">
+                        <button class="btn btn-primary" type="submit">Tra cứu</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <p class="text-muted small">
+        Chỉ hiển thị chuyến bay còn ghế và còn mở bán (trước giờ khởi hành {{ sell_hours }} giờ).
+        {% if closed_count %}Có <strong>{{ closed_count }}</strong> chuyến sắp bay đã đóng bán.{% endif %}
+    </p>
+
+    {% if rows %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle bg-white shadow-sm">
+            <thead class="table-light">
+            <tr>
+                <th>Chuyến bay</th><th>Tuyến</th><th>Khởi hành</th><th>Đến (dự kiến)</th>
+                <th>Dừng</th><th>Hạng vé (giá, ghế trống)</th><th></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in rows %}
+            {% set f = row.flight %}
+            <tr>
+                <td class="fw-semibold">{{ f.name }}</td>
+                <td>{{ f.from_city }} &rarr; {{ f.to_city }}</td>
+                <td>{{ f.departure_date.strftime('%d/%m/%Y') }} {{ f.departure.strftime('%H:%M') }}</td>
+                <td>{{ f.arrival.strftime('%H:%M') }}</td>
+                <td>{% if f.stops %}{{ f.stops|length }} sân bay TG{% else %}Bay thẳng{% endif %}</td>
+                <td>
+                    {% for t in row.types %}
+                    <div>{{ t.name }}: {{ "{:,.0f}".format(t.price) }} VNĐ
+                        <span class="badge {{ 'bg-success' if t.free else 'bg-secondary' }}">{{ t.free }} ghế</span></div>
+                    {% endfor %}
+                </td>
+                <td><a class="btn btn-primary btn-sm" href="{{ url_for('ban_ve.sell_view', flight_id=f.id) }}">Chọn</a></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center text-secondary mt-5"><h5>Không có chuyến bay phù hợp.</h5></div>
+    {% endif %}
+</div>
+{% endblock %}

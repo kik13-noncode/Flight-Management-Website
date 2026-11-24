@@ -1,0 +1,52 @@
+{% extends 'layout/base.html' %}
+{% block nav %}
+<style>
+@media print {
+    nav, footer, .no-print { display: none !important; }
+    .ticket { break-inside: avoid; }
+}
+</style>
+<div class="container">
+    <div class="no-print">{% include 'staff/_flash.html' %}</div>
+    <div class="d-flex justify-content-between align-items-center mb-3 no-print">
+        <h4 class="mb-0">Xuất vé - Hóa đơn #{{ invoice.id }}</h4>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" onclick="window.print()">In vé</button>
+            <a class="btn btn-outline-secondary" href="{{ url_for('ban_ve.search_view') }}">Bán vé mới</a>
+        </div>
+    </div>
+
+    {% for t in invoice.tickets %}
+    <div class="card shadow-sm mb-3 ticket">
+        <div class="card-header bg-primary text-white text-center fw-bold">VÉ CHUYẾN BAY</div>
+        <div class="card-body">
+            <div class="row mb-2">
+                <div class="col-md-6"><strong>Chuyến bay:</strong> {{ t.flight.name }}
+                    ({{ t.flight.from_city }} &rarr; {{ t.flight.to_city }})</div>
+                <div class="col-md-6"><strong>Hành khách:</strong> {{ t.passenger_name }}</div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-6"><strong>CMND/CCCD:</strong> {{ t.id_number }}</div>
+                <div class="col-md-6"><strong>Điện thoại:</strong> {{ t.phone }}</div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-6"><strong>Khởi hành:</strong>
+                    {{ t.flight.departure_date.strftime('%d/%m/%Y') }} {{ t.flight.departure.strftime('%H:%M') }}</div>
+                <div class="col-md-6"><strong>Hạng vé:</strong> {{ t.seat.seat_type }}
+                    &middot; <strong>Ghế:</strong> {{ t.seat.seat_number }}</div>
+            </div>
+            <div class="row">
+                <div class="col-md-6"><strong>Giá tiền:</strong> {{ "{:,.0f}".format(t.price) }} VNĐ</div>
+                <div class="col-md-6"><strong>Mã vé:</strong> VE{{ '%06d' % t.id }}</div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="text-end">
+        <h5>Tổng thanh toán: <span class="text-danger">{{ "{:,.0f}".format(invoice.total) }} VNĐ</span></h5>
+        <div class="small text-muted">Thu ngân: {{ invoice.staff.name if invoice.staff else '' }}
+            &middot; {{ invoice.created_at.strftime('%d/%m/%Y %H:%M') }} &middot; Tiền mặt</div>
+    </div>
+</div>
+{% endblock %}
