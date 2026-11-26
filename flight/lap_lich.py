@@ -12,6 +12,7 @@ def _render(form=None, errors=None):
         "staff/lap_lich.html", airports=dao.load_airports(),
         form=form, errors=errors or [], recent=dao.recent_flights(),
         rules={k: dao.get_rule(k) for k in dao.DEFAULT_RULES},
+        classes=dao.load_fare_classes(active_only=True),
     )
 
 

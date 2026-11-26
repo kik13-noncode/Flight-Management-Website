@@ -8,7 +8,7 @@ from flight.models import Airport, Flight, User, UserRoleEnum
 
 # Chỉ dùng khi chưa chạy `python -m flight.models` (bảng sân bay còn trống)
 AIRPORTS = [
-    ("TST", "Tân Sơn Nhất", "Sài Gòn"), ("NB", "Nội Bài", "Hà Nội"),
+    ("TSN", "Tân Sơn Nhất", "Sài Gòn"), ("NB", "Nội Bài", "Hà Nội"),
     ("DN", "Đà Nẵng", "Đà Nẵng"), ("CR", "Cam Ranh", "Khánh Hòa"),
     ("PQ", "Phú Quốc", "An Giang"), ("CB", "Cát Bi", "Hải Phòng"),
     ("PB", "Phú Bài", "Huế"), ("V", "Vinh", "Nghệ An"),
@@ -69,10 +69,10 @@ def main():
         add_user("Quản trị", "admin", "12345", UserRoleEnum.ADMIN)
         db.session.commit()
 
-        add_flight("NV101", "TST", "NB", 30, 125)
-        add_flight("NV205", "TST", "NB", 52, 190, stops=[("DN", 25)])
+        add_flight("NV101", "TSN", "NB", 30, 125)
+        add_flight("NV205", "TSN", "NB", 52, 190, stops=[("DN", 25)])
         add_flight("NV311", "NB", "DN", 76, 80)
-        add_flight("NV-DONG-BAN", "TST", "LK", 2, 60)  # còn 2h nên đã đóng bán (demo)
+        add_flight("NV-DONG-BAN", "TSN", "LK", 2, 60)  # còn 2h nên đã đóng bán (demo)
         print("Xong. Đăng nhập bằng nhanvien / 12345")
 
 

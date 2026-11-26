@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import backref, relationship
 
 from flight import db
@@ -82,3 +82,22 @@ class Regulation(db.Model):
     rule_key = Column(String(50), primary_key=True)
     value = Column(String(50), nullable=False)
     description = Column(String(200))
+
+
+class FareClass(db.Model):
+    """Hạng vé theo quy định: admin thay đổi số lượng hạng vé và bảng đơn giá vé mặc định.
+
+    name trùng với Seat.seat_type / TicketClass.name; prefix là tiền tố số ghế (E1, F1, ...).
+    default_price là đơn giá gợi ý khi nhân viên lập lịch chuyến bay mới.
+    """
+    __tablename__ = "fare_class"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(50), nullable=False, unique=True)
+    prefix = Column(String(5), nullable=False, unique=True)
+    rank = Column(Integer, nullable=False, default=1)          # 1 = hạng cao nhất
+    default_price = Column(Float, nullable=False, default=0)
+    is_active = Column(Boolean, nullable=False, default=True)  # False: không dùng cho lịch mới
+
+    def __str__(self):
+        return self.name

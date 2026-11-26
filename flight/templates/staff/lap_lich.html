@@ -39,7 +39,7 @@
                         <select class="form-select" name="to_airport" required>
                             <option value="">Chọn sân bay</option>
                             {% for a in airports %}
-                            <option value="{{ a.id }}" {{ 'selected' if form and form.get('to_airport') == a.id }}>{{ a.name }} ({{ a.city }})</option>
+                            <option value="{{ a.id }}" {{ 'selected' if form and form.get('to_airport') == a.id }} > {{ a.name }} ({{ a.city }})</option>
                             {% endfor %}
                         </select>
                     </div>
