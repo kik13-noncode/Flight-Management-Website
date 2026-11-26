@@ -119,17 +119,22 @@ class Seat(db.Model):
         return f"{self.seat_number} ({self.flight.name if self.flight else ''})"
 
 
+
+
 # -------------------------------------------------------------
 # 3. NẠP DỮ LIỆU MẪU KHI CHẠY FILE
 # -------------------------------------------------------------
 if __name__ == "__main__":
     with app.app_context():
 
-        db.create_all()
+        # db.create_all()
+        import hashlib
 
+        u = User(name='admin', username='admin', user_role=UserRoleEnum.ADMIN, password=str(hashlib.md5('12345'.encode('utf-8')).hexdigest()))
+        db.session.add(u)
         # Nạp đủ 10 sân bay với id là các chữ cái đầu
         airports_data = [
-            {"id": "TST", "city": "Sài Gòn", "name": "Tân Sơn Nhất"},
+            {"id": "TSN", "city": "Sài Gòn", "name": "Tân Sơn Nhất"},
             {"id": "NB", "city": "Hà Nội", "name": "Nội Bài"},
             {"id": "DN", "city": "Đà Nẵng", "name": "Đà Nẵng"},
             {"id": "CR", "city": "Khánh Hòa", "name": "Cam Ranh"},
@@ -282,11 +287,8 @@ if __name__ == "__main__":
             c.ticket_classes = [
                 TicketClass(
                     name="Thương gia", price=float(t["price"]) * 1.30
-                ),
-                TicketClass(
-                    name="Phổ thông đặc biệt", price=float(t["price"]) * 1.10
-                ),
-                TicketClass(name="Phổ thông", price=float(t["price"])),
+                )
+
             ]
 
             # Tạo 10 ghế Thương gia (E1 -> E10) và 20 ghế Phổ thông / Phổ thông đặc biệt (F1 -> F20)
