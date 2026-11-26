@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from flight import db
-from flight.models import Flight, User, UserRoleEnum, Seat
+from flight.models import Airport, Flight, User, UserRoleEnum, Seat
+from flight.dao_nhan_vien import get_rule, get_seat_types
 import cloudinary.uploader
 import hashlib
 
@@ -29,8 +30,8 @@ def load_flight(from_city=None, to_city=None, departure_date=None):
         if departure_date:
             query = query.filter(Flight.departure_date == departure_date)
 
-    # Chỉ hiển thị chuyến bay còn chỗ và cách giờ khởi hành ít nhất 12 tiếng
-    min_time = datetime.now() + timedelta(hours=12)
+    # Chỉ hiển thị chuyến bay còn chỗ và cách giờ khởi hành ít nhất book_before_hours giờ (quy định do admin đặt)
+    min_time = datetime.now() + timedelta(hours=get_rule("book_before_hours"))
     valid_flights = []
     for f in query.order_by(Flight.name).all():
         flight_datetime = datetime.combine(f.departure_date, f.departure)
@@ -54,6 +55,11 @@ def check_login(username, password):
         password = hashlib.md5(password.strip().encode('utf-8')).hexdigest()
         return User.query.filter(User.username == username.strip(), User.password == password.strip()).first()
     return None
+
+
+def load_cities():
+    """Danh sách tỉnh/thành có sân bay (dùng cho ô chọn điểm đi / điểm đến)."""
+    return [c for (c,) in db.session.query(Airport.city).order_by(Airport.city).all()]
 
 
 def get_user_by_id(user_id):
@@ -86,7 +92,10 @@ def add_user(name, username, password, cccd=None, phone=None, avatar=None):
 # TỰ ĐỘNG TÌM GHẾ TRỐNG & XÁC NHẬN ĐẶT VÉ CHO KHÁCH HÀNG
 # -------------------------------------------------------------
 def find_seat(flight_id, ticket_class_name):
-    target_seat_type = "Thương gia" if ticket_class_name.strip() == "Thương gia" else "Phổ thông"
+    # Hạng vé lấy từ bảng fare_class; hạng lạ (vd. "Phổ thông đặc biệt") quy về hạng thấp nhất
+    seat_types = [name for name, _ in get_seat_types()]
+    name = ticket_class_name.strip()
+    target_seat_type = name if name in seat_types else (seat_types[-1] if seat_types else "Phổ thông")
 
     return Seat.query.filter(
         Seat.flight_id == int(flight_id),
