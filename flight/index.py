@@ -5,6 +5,8 @@ from flight.models import Flight, TicketClass, UserRoleEnum, Seat
 from flight.zalopay import create_zalopay_payment, query_zalopay_order
 from flight.ban_ve import ban_ve_bp
 from flight.lap_lich import lap_lich_bp
+from flight import dao_nhan_vien
+import flight.admin  # noqa: F401  (đăng ký trang /admin, gồm cả trang thay đổi quy định)
 
 # Khu vực nhân viên: bán vé, lập lịch chuyến bay
 app.register_blueprint(ban_ve_bp)
@@ -13,6 +15,8 @@ app.register_blueprint(lap_lich_bp)
 
 @app.route("/")
 def index():
+    if current_user.is_authenticated:
+        logout_user()
     from_city = request.args.get("from_city")
     to_city = request.args.get("to_city")
     departure_date = request.args.get("departure_date")
@@ -94,7 +98,7 @@ def trangchu():
 
 @app.route("/search")
 def search():
-    return render_template("Search.html")
+    return render_template("Search.html", cities=dao.load_cities())
 
 
 @login.user_loader
@@ -111,6 +115,10 @@ def chon_hang_ve():
     ticket_class_id = request.form.get("ticket_class_id")
 
     flight = Flight.query.get_or_404(flight_id)
+    # Quy định: chỉ đặt vé online trước giờ khởi hành book_before_hours giờ (admin thay đổi được)
+    if not dao_nhan_vien.is_open_for_booking(flight):
+        return (f"Chuyến bay đã đóng đặt vé online "
+                f"(chỉ đặt trước giờ khởi hành {dao_nhan_vien.get_rule('book_before_hours')} giờ).")
     ticket_class = TicketClass.query.filter_by(id=ticket_class_id, flight_id=flight_id).first_or_404()
     seat = dao.find_seat(flight.id, ticket_class.name)
 
@@ -129,6 +137,9 @@ def xac_nhan_dat_ve():
     seat = Seat.query.get_or_404(seat_id)
     flight = Flight.query.get_or_404(flight_id)
     ticket_class = TicketClass.query.get_or_404(ticket_class_id)
+    if not dao_nhan_vien.is_open_for_booking(flight):
+        return (f"Chuyến bay đã đóng đặt vé online "
+                f"(chỉ đặt trước giờ khởi hành {dao_nhan_vien.get_rule('book_before_hours')} giờ).")
 
     return render_template(
         "pay.html",
