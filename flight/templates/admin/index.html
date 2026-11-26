@@ -6,19 +6,6 @@
 
 <div class="container-fluid  py-4">
     <div class="row align-items-center mb-4">
-        <div class="col-md-2 text-center">
-            {% if current_user.avatar %}
-            <img src="{{ current_user.avatar }}"
-                 class="img-fluid rounded-circle shadow"
-                 style="width: 110px; height: 110px; object-fit: cover;"
-                 alt="Avatar">
-            {% else %}
-            <img src="https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg"
-                 class="img-fluid rounded-circle shadow"
-                 style="width: 110px; height: 110px; object-fit: cover;"
-                 alt="Default">
-            {% endif %}
-        </div>
         <div class="col-md-10">
             <h2 class="fw-bold text-primary mb-1">
                 Xin chào, {{ current_user.name or current_user.username }}!
