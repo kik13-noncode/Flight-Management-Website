@@ -6,10 +6,10 @@ from flask_login import current_user, logout_user
 from markupsafe import Markup
 from wtforms.fields.numeric import FloatField
 
-from flight import app, db
-from flight import dao_nhan_vien as dao
+from flight import app, db, dao
 from flight.models import Airport, Flight, Seat, TicketClass, UserRoleEnum
 from flight.models_nhan_vien import FareClass, IntermediateStop
+from datetime import datetime
 
 admin = Admin(app=app, name=" OU Airlines Admin")
 
@@ -66,8 +66,24 @@ class BaseAuthenticatedView(BaseView):
 
 class StatsView(BaseAuthenticatedView):
     @expose("/")
-    def index(self):
-        return self.render("admin/stats.html")
+    def index(self, **kwargs):
+        # Doanh thu chuyến bay lọc theo tên
+        revenue_by_flights = dao.cal_revenue_by_flight(kw = request.args.get('kw'))
+        y= request.args.get('year')
+        if not y:
+            y = datetime.now().year
+
+        revenue_by_time = dao.cal_revenue_by_time(time = request.args.get('time','month'),year = y)
+
+        # Thống kê theo hạng ghế
+
+        tickets_by_type = dao.cal_tickets_by_seat_type()
+
+        return self.render("admin/stats.html",
+            revenue_by_flights=revenue_by_flights,
+            revenue_by_time=revenue_by_time,
+            tickets_by_type=tickets_by_type)
+
 
 
 class LogoutView(BaseView):
@@ -178,5 +194,5 @@ admin.add_view(AuthenticatedView(TicketClass, db.session, name="Hạng vé"))
 admin.add_view(AirportView(Airport, db.session, name="Sân bay"))
 admin.add_view(FareClassView(FareClass, db.session, name="Hạng vé & đơn giá"))
 admin.add_view(RegulationView(name="Quy định", endpoint="regulations"))
-admin.add_view(StatsView(name="Thống kê"))
+admin.add_view(StatsView(name="Thống kê", endpoint="stats"))
 admin.add_view(LogoutView(name="Đăng xuất"))
