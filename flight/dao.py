@@ -1,9 +1,13 @@
 from datetime import datetime, timedelta
+
+from sqlalchemy import func, extract
+
 from flight import db
 from flight.models import Airport, Flight, User, UserRoleEnum, Seat
-from flight.dao_nhan_vien import get_rule, get_seat_types
+from flight.dao_nhan_vien import get_rule, get_seat_types, Invoice, Ticket
 import cloudinary.uploader
 import hashlib
+from datetime import datetime
 
 
 def load_flight(from_city=None, to_city=None, departure_date=None):
@@ -117,3 +121,36 @@ def get_user_tickets(user_id):
         Seat.user_id == int(user_id),
         Seat.is_booked == True
     ).order_by(Seat.id.desc()).all()
+
+
+# THỐNG KÊ BÁO CÁO
+# Số ghế đã bán cho từng chuyến bay
+def count_seats_by_flight():
+    """Số ghế đã bán theo từng chuyến bay (tương tự count_products_by_cate)."""
+    return (db.session.query(Flight.id,Flight.name,func.count(Seat.id))
+            .join(Seat, Seat.flight_id == Flight.id, isouter=True)
+            .filter(Seat.is_booked == True)
+            .group_by(Flight.id).all())
+
+
+# doanh thu theo từng chuyến bay
+def cal_revenue_by_flight(kw = None):
+    query = (db.session.query(Flight.id,Flight.name,func.count(Ticket.price)).join(Ticket, Ticket.flight_id == Flight.id).group_by(Flight.id))
+    if kw:
+        query = query.filter(Flight.name.contains(kw))
+    return query.all()
+
+# Doanh thu theo tháng
+def cal_revenue_by_time(time='month', year=None):
+    if not year:
+        year = datetime.now().year
+    query = (db.session.query(extract(time, Invoice.created_at),func.sum(Invoice.total))
+            .filter(Invoice.status == 'PAID',extract('year', Invoice.created_at) == year)
+            .group_by(extract(time, Invoice.created_at))
+            .order_by(extract(time, Invoice.created_at)))
+    return query.all()
+
+# số vé bán theo hạng ghế
+def cal_tickets_by_seat_type():
+    return (db.session.query(Seat.seat_type, func.count(Seat.id)).filter(Seat.is_booked == True)
+            .group_by(Seat.seat_type).all())

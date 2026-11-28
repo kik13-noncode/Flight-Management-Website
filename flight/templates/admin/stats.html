@@ -1,24 +1,138 @@
 {% extends 'admin/master.html' %}
 
 {% block body %}
-<div class="container-fluid py-4">
-    <h2 class="text-center text-primary fw-bold mb-4">
-        THỐNG KÊ & BÁO CÁO
-    </h2>
+<h1 class="text-center text-success mt-2">THỐNG KÊ & BÁO CÁO</h1>
 
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center py-5">
-                    <p class="text-muted mb-0 fs-5">
-                        Khu vực thống kê đang được phát triển.
-                    </p>
-                    <p class="text-secondary mt-2">
-                        Bạn có thể bổ sung biểu đồ doanh thu, số lượng chuyến bay, hạng vé... tại đây.
-                    </p>
-                </div>
+<form method="get" action="">
+    <div class="mt-3">
+        <input type="text" placeholder="Tên chuyến bay..." name="kw" class="form-control"
+               value="{{ request.args.get('kw', '') }}" />
+    </div>
+    <div class="mt-3">
+        <div class="row">
+            <div class="col-6">
+                <select class="form-control" name="time">
+                    <option value="month" {% if request.args.get('time') == 'month' %}selected{% endif %}>Theo tháng</option>
+                    <option value="quarter" {% if request.args.get('time') == 'quarter' %}selected{% endif %}>Theo quý</option>
+                </select>
+            </div>
+            <div class="col-6">
+                <input type="number" placeholder="Năm" name="year" class="form-control"
+                       value="{{ request.args.get('year', '') }}" />
             </div>
         </div>
     </div>
+    <div class="mt-3">
+        <button class="btn btn-success">Thống kê</button>
+    </div>
+</form>
+
+<!-- Doanh thu theo chuyến bay -->
+<div class="row mt-3">
+    <div class="col-6">
+        <table class="table table-bordered">
+            <tr>
+                <th>Id</th>
+                <th>Tên chuyến bay</th>
+                <th>Doanh thu</th>
+            </tr>
+            {% for s in revenue_by_flights %}
+            <tr>
+                <td>{{ s[0] }}</td>
+                <td>{{ s[1] }}</td>
+                <td>{{ "{:,.0f}".format(s[2] or 0) }} ₫</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3" class="text-center text-muted">Chưa có dữ liệu</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <div class="col-6">
+        <canvas id="myChart1"></canvas>
+    </div>
 </div>
+
+<!-- Doanh thu theo thời gian -->
+<div class="row mt-3">
+    <div class="col-6">
+        <table class="table table-bordered">
+            <tr>
+                <th>Thời gian</th>
+                <th>Doanh thu</th>
+            </tr>
+            {% for s in revenue_by_time %}
+            <tr>
+                <td>{{ s[0] }}</td>
+                <td>{{ "{:,.0f}".format(s[1] or 0) }} ₫</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="2" class="text-center text-muted">Chưa có dữ liệu</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <div class="col-6">
+        <canvas id="myChart2"></canvas>
+    </div>
+</div>
+
+<!-- Vé theo hạng ghế (thêm) -->
+<div class="row mt-3">
+    <div class="col-6">
+        <table class="table table-bordered">
+            <tr>
+                <th>Hạng ghế</th>
+                <th>Số vé đã bán</th>
+            </tr>
+            {% for s in tickets_by_type %}
+            <tr>
+                <td>{{ s[0] }}</td>
+                <td>{{ s[1] }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="2" class="text-center text-muted">Chưa có dữ liệu</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <div class="col-6">
+        <canvas id="myChart3"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='JS/draw.js') }}"></script>
+<script>
+    let data = [];
+    let labels = [];
+    let data2 = [];
+    let labels2 = [];
+    let data3 = [];
+    let labels3 = [];
+
+    {% for s in revenue_by_flights %}
+        data.push({{ s[2] or 0 }});
+        labels.push('{{ s[1] }}');
+    {% endfor %}
+
+    {% for s in revenue_by_time %}
+        data2.push({{ s[1] or 0 }});
+        labels2.push({{ s[0] }});
+    {% endfor %}
+
+    {% for s in tickets_by_type %}
+        data3.push({{ s[1] }});
+        labels3.push('{{ s[0] }}');
+    {% endfor %}
+
+    window.onload = function() {
+        drawChart(data, labels, 'Doanh thu theo chuyến bay', 'bar', 'myChart1');
+        drawChart(data2, labels2, 'Doanh thu theo thời gian', 'bar', 'myChart2');
+        drawChart(data3, labels3, 'Vé theo hạng ghế', 'pie', 'myChart3');
+    }
+</script>
 {% endblock %}
